@@ -81,6 +81,14 @@
         .copy-row button { margin-top: 0; padding: 8px 16px; font-size: 13px; }
         .footer-note { text-align: center; font-size: 13px; color: var(--color-dark-gray); margin-top: 24px; }
         .footer-note a { color: var(--color-accent); font-weight: 600; }
+        input[type="url"] { min-width: 0; }
+        #result a.board-link { word-break: break-all; }
+        @media (max-width: 600px) {
+            body { padding: 16px 10px; }
+            .card { padding: 24px 16px; }
+            h1 { font-size: 26px; }
+            ol.steps { margin-left: 16px; }
+        }
     </style>
 </head>
 <body>
@@ -94,7 +102,8 @@
         <ol class="steps">
             <li><b>Copy the template Form and Settings sheet</b> (links and full
                 instructions in the <a href="https://github.com/cameronha/cohort-leaderboard#quickstart" target="_blank" rel="noopener">setup guide</a>).</li>
-            <li>In each spreadsheet: <b>File &gt; Share &gt; Publish to web</b>,
+            <li>You now have two spreadsheets: your Form's responses sheet and
+                your Settings sheet. In each one: <b>File &gt; Share &gt; Publish to web</b>,
                 pick the tab, choose <b>Comma-separated values (.csv)</b>, publish, copy the URL.</li>
             <li>Paste the two URLs below.</li>
         </ol>
@@ -122,6 +131,19 @@
         return /^https:\/\/docs\.google\.com\/spreadsheets\//i.test(url);
     }
 
+    // Fix the two most common paste mistakes without erroring:
+    // a /pubhtml link (published as web page instead of CSV) and a /pub
+    // link missing output=csv. Both rewrite cleanly to the CSV form.
+    function normalizeSheetUrl(raw) {
+        let url = String(raw || '').trim();
+        if (!isSheetCsvUrl(url)) return url;
+        url = url.replace(/\/pubhtml(\?|$)/, '/pub$1');
+        if (/\/pub(\?|$)/.test(url) && !/output=csv/.test(url)) {
+            url += (url.includes('?') ? '&' : '?') + 'output=csv';
+        }
+        return url;
+    }
+
     function fail(msg) {
         resultDiv.className = 'error';
         resultDiv.style.display = 'block';
@@ -131,8 +153,8 @@
     document.getElementById('demo-link').href = 'index.html?demo=1';
 
     document.getElementById('build-btn').onclick = async function() {
-        const settings = document.getElementById('settings-url').value.trim();
-        const data = document.getElementById('data-url').value.trim();
+        const settings = normalizeSheetUrl(document.getElementById('settings-url').value);
+        const data = normalizeSheetUrl(document.getElementById('data-url').value);
 
         if (!isSheetCsvUrl(settings) || !isSheetCsvUrl(data)) {
             fail('Both fields need Google Sheets published-CSV URLs (they start with https://docs.google.com/spreadsheets/). Use File &gt; Share &gt; Publish to web in each sheet and pick the CSV format.');

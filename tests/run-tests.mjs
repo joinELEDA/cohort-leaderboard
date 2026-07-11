@@ -1,0 +1,129 @@
+// Regression tests for the leaderboard's pure logic.
+// Run: node tests/run-tests.mjs
+//
+// Extracts the inline <script> from index.html and make.html and evals it
+// with minimal stubs, so the shipped files stay exactly as they are and
+// these tests can never drift from production code.
+
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+function extractInlineScript(html) {
+    // Last <script> block without a src attribute
+    const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+    return blocks[blocks.length - 1][1];
+}
+
+function evalWithStubs(code) {
+    const stubEl = () => ({ style: {}, searchParams: null });
+    const sandbox = { window: {}, document: { getElementById: stubEl, querySelector: stubEl }, Papa: undefined, fetch: undefined, setInterval: () => {}, URLSearchParams, URL, console, navigator: {} };
+    const names = [
+        'parseScore', 'cleanMetricTitle', 'parseSettings', 'aggregateByTeam',
+        'buildLeaderboards', 'safeUrl', 'safeSheetUrl', 'escapeHtml',
+        'normalizeSheetUrl', 'isSheetCsvUrl'
+    ];
+    const collector = `;return ({${names.map(n => `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(',')}})`;
+    const fn = new Function(...Object.keys(sandbox), code + collector);
+    return fn(...Object.values(sandbox));
+}
+
+const indexHtml = await readFile(join(root, 'index.html'), 'utf8');
+const makeHtml = await readFile(join(root, 'make.html'), 'utf8');
+const lib = evalWithStubs(extractInlineScript(indexHtml));
+const makeLib = evalWithStubs(extractInlineScript(makeHtml));
+
+let passed = 0, failed = 0;
+function eq(actual, expected, label) {
+    const a = JSON.stringify(actual), e = JSON.stringify(expected);
+    if (a === e) { passed++; }
+    else { failed++; console.error(`FAIL ${label}\n  expected ${e}\n  got      ${a}`); }
+}
+
+// --- parseScore ---
+eq(lib.parseScore('45'), 45, 'parseScore plain int');
+eq(lib.parseScore('$1,200'), 1200, 'parseScore US currency');
+eq(lib.parseScore('1.234,56'), 1234.56, 'parseScore EU thousands+decimal');
+eq(lib.parseScore('1,5'), 1.5, 'parseScore EU decimal comma');
+eq(lib.parseScore('1,234'), 1234, 'parseScore US thousands');
+eq(lib.parseScore('12.5'), 12.5, 'parseScore US decimal');
+eq(lib.parseScore(''), 0, 'parseScore empty');
+eq(lib.parseScore('abc'), 0, 'parseScore garbage');
+eq(lib.parseScore('-3'), -3, 'parseScore negative');
+// Documented ambiguity: lone dot reads as US decimal
+eq(lib.parseScore('2.500'), 2.5, 'parseScore ambiguous lone dot = US');
+
+// --- cleanMetricTitle ---
+eq(lib.cleanMetricTitle('📞 Outreach Made (DMs, emails)\nlong explainer'), '📞 Outreach Made', 'cleanMetricTitle strips paren+newline');
+eq(lib.cleanMetricTitle('Revenue'), 'Revenue', 'cleanMetricTitle passthrough');
+
+// --- safeUrl / safeSheetUrl ---
+eq(lib.safeUrl('javascript:alert(1)'), '', 'safeUrl blocks javascript:');
+eq(lib.safeUrl('https://ok.example'), 'https://ok.example', 'safeUrl allows https');
+eq(lib.safeSheetUrl('https://evil.example/x'), '', 'safeSheetUrl blocks non-Google');
+eq(lib.safeSheetUrl('https://docs.google.com/spreadsheets/d/e/X/pub?output=csv'), 'https://docs.google.com/spreadsheets/d/e/X/pub?output=csv', 'safeSheetUrl allows published sheet');
+
+// --- parseSettings row mapping (col A by row number) ---
+const settingsRows = [
+    ['Title'], ['Dates'], ['Explainer'], ['Disc'],
+    ['PBText'], ['https://pb.example'], ['BtnText'], ['https://form.example'],
+    ['ON'], ['OFF'], ['SUM'], ['https://logo.example/l.png'], ['12/8/2025']
+];
+const s = lib.parseSettings(settingsRows);
+eq(s.title, 'Title', 'settings A1 title');
+eq(s.poweredByText, 'PBText', 'settings A5 powered-by');
+eq(s.formLinkUrl, 'https://form.example', 'settings A8 form url');
+eq(s.showScoreGap, true, 'settings A9 gap ON');
+eq(s.stackOnMobile, false, 'settings A10 stack OFF');
+eq(s.aggregate, 'SUM', 'settings A11 aggregate');
+eq(s.logoUrl, 'https://logo.example/l.png', 'settings A12 logo');
+eq(s.sinceDate instanceof Date && !isNaN(s.sinceDate), true, 'settings A13 since date parses');
+// Legacy sheet: QR URL in A11 falls back to RAW
+const legacy = lib.parseSettings([['T'],[''],[''],[''],[''],[''],[''],[''],[''],[''],['https://raw.githubusercontent.com/qr.png']]);
+eq(legacy.aggregate, 'RAW', 'settings legacy A11 URL -> RAW');
+
+// --- aggregateByTeam ---
+const entries = [
+    { team: 'Alpha', score: 5, order: 0 },
+    { team: 'alpha', score: 7, order: 1 },
+    { team: 'Beta', score: 10, order: 2 },
+    { team: '', score: 99, order: 3 }
+];
+eq(lib.aggregateByTeam(entries, 'SUM').map(e => e.team + '=' + e.score).sort(), ['Alpha=12', 'Beta=10'], 'aggregate SUM, case-insensitive, drops blank teams');
+eq(lib.aggregateByTeam(entries, 'LATEST').map(e => e.team + '=' + e.score).sort(), ['Alpha=7', 'Beta=10'], 'aggregate LATEST');
+eq(lib.aggregateByTeam([{ team: 'A', score: 3, order: 0 }, { team: 'A', score: 9, order: 1 }, { team: 'A', score: 4, order: 2 }], 'MAX').map(e => e.score), [9], 'aggregate MAX');
+
+// --- buildLeaderboards end to end ---
+const dataRows = [
+    ['Timestamp', 'Team Name', 'Outreach', '💰 Revenue closed (number)'],
+    ['12/1/2025 10:00:00', 'Alpha', '5', '100'],
+    ['12/8/2025 09:00:00', 'Alpha', '7', '200'],
+    ['12/8/2025 11:00:00', 'Beta', '10', '20'],
+    ['12/9/2025 11:00:00', 'Beta', '2', '80']
+];
+const cfg = base => Object.assign({ showScoreGap: false, aggregate: 'RAW', sinceDate: null }, base);
+
+let boards = lib.buildLeaderboards(dataRows, cfg({}));
+eq(boards.length, 2, 'RAW two metric boards');
+eq(boards[0].data.length, 4, 'RAW keeps every row');
+eq(boards[1].isCurrency, true, 'currency detected from revenue header');
+eq(boards[1].metricTitle, '💰 Revenue closed', 'metric title cleaned');
+
+boards = lib.buildLeaderboards(dataRows, cfg({ aggregate: 'SUM', sinceDate: new Date('12/8/2025') }));
+eq(boards[0].data.map(e => e.team + '=' + e.score), ['Beta=12', 'Alpha=7'], 'SUM + since-date outreach');
+eq(boards[1].data.map(e => e.team + '=' + e.score), ['Alpha=200', 'Beta=100'], 'SUM + since-date revenue');
+
+boards = lib.buildLeaderboards(dataRows, cfg({ showScoreGap: true }));
+eq(boards[0].data[0].scoreGap, 'Leader', 'score gap leader label');
+eq(boards[0].data[1].scoreGap, '3 behind', 'score gap behind label');
+
+// --- normalizeSheetUrl (make.html) ---
+eq(makeLib.normalizeSheetUrl('https://docs.google.com/spreadsheets/d/e/X/pubhtml'), 'https://docs.google.com/spreadsheets/d/e/X/pub?output=csv', 'normalize pubhtml -> pub csv');
+eq(makeLib.normalizeSheetUrl('https://docs.google.com/spreadsheets/d/e/X/pubhtml?gid=5&single=true'), 'https://docs.google.com/spreadsheets/d/e/X/pub?gid=5&single=true&output=csv', 'normalize pubhtml with params');
+eq(makeLib.normalizeSheetUrl('https://docs.google.com/spreadsheets/d/e/X/pub?gid=5&single=true&output=csv'), 'https://docs.google.com/spreadsheets/d/e/X/pub?gid=5&single=true&output=csv', 'normalize leaves good url alone');
+eq(makeLib.normalizeSheetUrl('not a url'), 'not a url', 'normalize passes garbage through for validation to reject');
+
+console.log(`\n${passed} passed, ${failed} failed`);
+process.exit(failed ? 1 : 0);
