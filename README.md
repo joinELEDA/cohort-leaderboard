@@ -1,12 +1,19 @@
 # Cohort Leaderboard
 
-A live leaderboard for entrepreneur programs, accelerators, and cohort courses.
-Founders submit their numbers through a Google Form. The board ranks them,
-medals and all, and updates itself. Runs entirely on a Google Sheet you
-already know how to edit. Free.
+A live leaderboard for entrepreneur programs, accelerators, and cohort
+courses. When founders can see where they stand, the pace of the whole
+cohort changes: more outreach between sessions, more deals closed, more
+progress to show when the group meets.
+
+Founders submit their numbers through a Google Form. This page turns those
+submissions into a ranked scoreboard (gold, silver, and bronze podium up
+top, live score gaps below) that updates itself all week. It runs entirely
+on a Google Sheet you already know how to edit. Free.
 
 **[See a demo](https://cohort-leaderboard.netlify.app/?demo=1)** ·
 **[Make your own](https://cohort-leaderboard.netlify.app/make.html)**
+
+![The demo leaderboard](assets/demo-board.png)
 
 Built for the Round Rock pre-accelerator, where it goes up on the projector
 at the start of every session.
