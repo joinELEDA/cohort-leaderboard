@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make a Cohort Leaderboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-dark-gray: #6A7379;
+            --color-darker-gray: #545C61;
+            --color-light-gray: #F0F3F5;
+            --color-bg-gray: #E8E8E8;
+            --color-navy: #2A5B79;
+            --color-accent: #5193BD;
+            --color-dark-text: #232425;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Libre Franklin', sans-serif;
+            background: var(--color-bg-gray);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .card {
+            max-width: 760px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+        h1 { font-size: 34px; font-weight: 800; color: var(--color-dark-text); margin-bottom: 10px; }
+        .lede { font-size: 17px; color: var(--color-dark-gray); margin-bottom: 28px; line-height: 1.5; }
+        .lede a { color: var(--color-accent); font-weight: 600; }
+        ol.steps { margin: 0 0 28px 20px; color: var(--color-darker-gray); line-height: 1.7; font-size: 15px; }
+        ol.steps li { margin-bottom: 10px; }
+        ol.steps b { color: var(--color-dark-text); }
+        label { display: block; font-weight: 700; font-size: 15px; color: var(--color-dark-text); margin: 18px 0 6px; }
+        input[type="url"] {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 14px;
+            font-family: inherit;
+            border: 2px solid var(--color-light-gray);
+            border-radius: 10px;
+        }
+        input[type="url"]:focus { outline: none; border-color: var(--color-accent); }
+        .hint { font-size: 13px; color: var(--color-dark-gray); margin-top: 4px; }
+        button {
+            margin-top: 26px;
+            background: var(--color-accent);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 24px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(81, 147, 189, 0.4);
+        }
+        button:hover { background: var(--color-navy); }
+        #result {
+            display: none;
+            margin-top: 26px;
+            padding: 18px;
+            background: var(--color-light-gray);
+            border-radius: 12px;
+        }
+        #result.error { background: #FBEAEA; }
+        #result p { font-size: 14px; color: var(--color-darker-gray); margin-bottom: 10px; line-height: 1.5; }
+        #result a.board-link {
+            display: inline-block;
+            word-break: break-all;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+        .copy-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+        .copy-row button { margin-top: 0; padding: 8px 16px; font-size: 13px; }
+        .footer-note { text-align: center; font-size: 13px; color: var(--color-dark-gray); margin-top: 24px; }
+        .footer-note a { color: var(--color-accent); font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Make a leaderboard</h1>
+        <p class="lede">Turn a Google Sheet into a live leaderboard for your cohort.
+            No account, nothing to install. Founders submit numbers through your
+            Google Form; this page gives you a link to the live board.
+            Never seen one? <a href="?demo=1" id="demo-link">View the demo</a>.</p>
+
+        <ol class="steps">
+            <li><b>Copy the template Form and Settings sheet</b> (links and full
+                instructions in the <a href="https://github.com/cameronha/cohort-leaderboard#quickstart" target="_blank" rel="noopener">setup guide</a>).</li>
+            <li>In each spreadsheet: <b>File &gt; Share &gt; Publish to web</b>,
+                pick the tab, choose <b>Comma-separated values (.csv)</b>, publish, copy the URL.</li>
+            <li>Paste the two URLs below.</li>
+        </ol>
+
+        <label for="settings-url">Settings tab published-CSV URL</label>
+        <input type="url" id="settings-url" placeholder="https://docs.google.com/spreadsheets/d/e/...&output=csv">
+        <div class="hint">From the spreadsheet with your title, dates, and options.</div>
+
+        <label for="data-url">Responses tab published-CSV URL</label>
+        <input type="url" id="data-url" placeholder="https://docs.google.com/spreadsheets/d/e/...&output=csv">
+        <div class="hint">From the spreadsheet collecting your Google Form responses.</div>
+
+        <button id="build-btn">Build my leaderboard</button>
+
+        <div id="result"></div>
+
+        <p class="footer-note">Prefer to host it yourself, or want help setting it up?
+            <a href="https://github.com/cameronha/cohort-leaderboard" target="_blank" rel="noopener">Setup guide and contact</a></p>
+    </div>
+
+<script>
+    const resultDiv = document.getElementById('result');
+
+    function isSheetCsvUrl(url) {
+        return /^https:\/\/docs\.google\.com\/spreadsheets\//i.test(url);
+    }
+
+    function fail(msg) {
+        resultDiv.className = 'error';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<p>' + msg + '</p>';
+    }
+
+    document.getElementById('demo-link').href = 'index.html?demo=1';
+
+    document.getElementById('build-btn').onclick = async function() {
+        const settings = document.getElementById('settings-url').value.trim();
+        const data = document.getElementById('data-url').value.trim();
+
+        if (!isSheetCsvUrl(settings) || !isSheetCsvUrl(data)) {
+            fail('Both fields need Google Sheets published-CSV URLs (they start with https://docs.google.com/spreadsheets/). Use File &gt; Share &gt; Publish to web in each sheet and pick the CSV format.');
+            return;
+        }
+        if (settings === data) {
+            fail('Those are the same URL. The Settings tab and the responses tab each need their own published-CSV URL (watch the gid= number; it differs per tab).');
+            return;
+        }
+
+        this.textContent = 'Checking your sheets...';
+        this.disabled = true;
+
+        let ok = true;
+        try {
+            const [r1, r2] = await Promise.all([fetch(settings), fetch(data)]);
+            ok = r1.ok && r2.ok;
+        } catch (e) {
+            ok = false;
+        }
+
+        this.textContent = 'Build my leaderboard';
+        this.disabled = false;
+
+        if (!ok) {
+            fail('One of those URLs did not respond like a published sheet. Double-check both tabs are published (File &gt; Share &gt; Publish to web) and that you copied the full URL ending in output=csv.');
+            return;
+        }
+
+        const link = new URL('index.html', window.location.href);
+        link.searchParams.set('settings', settings);
+        link.searchParams.set('data', data);
+
+        resultDiv.className = '';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML =
+            '<p><b>Your leaderboard is live.</b> Bookmark this link, put it on the projector, and share it with your cohort. It updates itself as submissions come in (allow up to 5 minutes).</p>' +
+            '<a class="board-link" href="' + link.href + '" target="_blank" rel="noopener"></a>' +
+            '<div class="copy-row"><button id="copy-btn">Copy link</button><span class="hint" id="copy-msg"></span></div>';
+        resultDiv.querySelector('.board-link').textContent = link.href;
+        document.getElementById('copy-btn').onclick = function() {
+            navigator.clipboard.writeText(link.href).then(() => {
+                document.getElementById('copy-msg').textContent = 'Copied.';
+            });
+        };
+    };
+</script>
+</body>
+</html>

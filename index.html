@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cohort Leaderboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-black: #232425;
+            --color-dark-gray: #6A7379;
+            --color-darker-gray: #545C61;
+            --color-light-gray: #F0F3F5;
+            --color-bg-gray: #E8E8E8;
+            --color-navy: #2A5B79;
+            --color-gold-base: #FFD700;
+            --color-silver-base: #C0C0C0;
+            --color-bronze-base: #CD7F32;
+            --color-accent: #5193BD;
+            --color-dark-text: #232425;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Libre Franklin', sans-serif;
+            background: var(--color-bg-gray);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--color-dark-text);
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: var(--color-dark-gray);
+            font-weight: 400;
+        }
+
+        .submit-button {
+            display: none;
+            text-decoration: none;
+            background: var(--color-accent);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 16px;
+            margin: 20px auto 0;
+            transition: background 0.2s;
+            box-shadow: 0 4px 12px rgba(81, 147, 189, 0.4);
+        }
+        .submit-button:hover {
+            background: var(--color-navy);
+        }
+
+        #loading {
+            text-align: center;
+            font-size: 1.2em;
+            color: var(--color-accent);
+            padding: 50px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+        #loading .setup-note {
+            font-size: 0.8em;
+            color: var(--color-dark-gray);
+            margin-top: 16px;
+            line-height: 1.6;
+        }
+        #loading .setup-note a {
+            color: var(--color-accent);
+            font-weight: 600;
+        }
+
+        .leaderboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .column {
+            padding: 40px;
+            position: relative;
+            background: white;
+        }
+
+        .column-outreach {
+            border-right: 2px solid var(--color-light-gray);
+        }
+
+        .column-header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--color-light-gray);
+        }
+
+        .column-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--color-dark-text);
+        }
+
+        .entry { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; margin-bottom: 16px; background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; transform: scale(0.95); }
+        .entry:hover { transform: scale(0.97) translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+        .entry.first { background: linear-gradient(135deg, var(--color-gold-base) 0%, #FFA500 100%); box-shadow: 0 8px 24px rgba(255, 215, 0, 0.5); transform: scale(1.08); margin-bottom: 32px; padding: 24px 28px; margin-left: 12px; margin-right: 12px; }
+        .entry.first:hover { transform: scale(1.10) translateY(-2px); box-shadow: 0 12px 32px rgba(255, 215, 0, 0.6); }
+        .entry.second { background: linear-gradient(135deg, #E8E8E8 0%, var(--color-silver-base) 100%); transform: scale(1.03); margin-bottom: 20px; padding: 20px 24px; }
+        .entry.second:hover { transform: scale(1.05) translateY(-2px); }
+        .entry.third { background: linear-gradient(135deg, #F4A460 0%, var(--color-bronze-base) 100%); transform: scale(1.0); padding: 20px 24px; }
+        .entry.third:hover { transform: scale(1.02) translateY(-2px); }
+        .left-side { display: flex; align-items: center; gap: 16px; }
+        .medal { font-size: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); min-width: 36px; }
+        .entry.first .medal { font-size: 60px; animation: pulse 2s ease-in-out infinite; min-width: 60px; }
+        .entry.second .medal { font-size: 48px; min-width: 48px; }
+        .entry.third .medal { font-size: 40px; min-width: 40px; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .rank { font-size: 24px; font-weight: 700; color: var(--color-darker-gray); min-width: 30px; }
+        .entry.first .rank, .entry.second .rank, .entry.third .rank { color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .name { font-size: 26px; font-weight: 600; color: var(--color-dark-text); }
+        .name.placeholder { color: var(--color-dark-gray); font-weight: 600; font-style: normal; }
+        .entry.first .name, .entry.second .name, .entry.third .name { color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .entry.first .name.placeholder, .entry.second .name.placeholder, .entry.third .name.placeholder { color: white; opacity: 0.8; text-shadow: none; font-style: normal; font-weight: 600; }
+        .score { font-size: 40px; font-weight: 800; color: var(--color-dark-text); min-width: 100px; text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+        .score-number { line-height: 1; }
+        .score-number.placeholder { color: var(--color-dark-gray); font-weight: 400; }
+        .score-gap { font-size: 13px; font-weight: 600; color: #8E969B; margin-top: 4px; }
+        .entry.first .score, .entry.second .score, .entry.third .score { color: white; }
+        .entry.first .score-number, .entry.second .score-number, .entry.third .score-number { text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .entry.first .score-number.placeholder, .entry.second .score-number.placeholder, .entry.third .score-number.placeholder { color: white; opacity: 0.8; text-shadow: none; }
+        .entry.first .score-gap { color: rgba(255, 255, 255, 0.8); }
+        .entry.second .score-gap, .entry.third .score-gap { color: rgba(255, 255, 255, 0.7); }
+
+        .footer-wrapper {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-light-gray);
+        }
+        #powered-by-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .powered-by-text {
+            font-size: 15px;
+            color: var(--color-darker-gray);
+            margin: 0;
+            font-weight: 600;
+            font-style: italic;
+        }
+        .powered-by-text a {
+            color: var(--color-accent);
+            text-decoration: none;
+            font-style: normal;
+        }
+        .powered-by-text a:hover {
+            text-decoration: underline;
+        }
+        .powered-by-logo {
+            height: 32px;
+            width: auto;
+            opacity: 0.85;
+            transition: opacity 0.3s;
+        }
+        .powered-by-logo:hover {
+            opacity: 1;
+        }
+        .disclaimer p {
+            font-size: 0.85em;
+            color: var(--color-dark-gray);
+            line-height: 1.4;
+            margin: 0 auto;
+            max-width: 900px;
+        }
+
+        @media (max-width: 968px) {
+            h1 { font-size: 36px; }
+            .header { padding: 20px; }
+            .leaderboard-grid { border-radius: 0 0 20px 20px; }
+        }
+    </style>
+    <style id="mobile-stacking-style"></style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="header">
+            <h1 id="main-title">Loading Leaderboard...</h1>
+            <p class="subtitle" id="subtitle-text">Fetching program data...</p>
+            <a id="submit-button" href="#" class="submit-button" target="_blank" rel="noopener"></a>
+        </div>
+
+        <div id="loading">Firing up Leaderboard...</div>
+
+        <div class="leaderboard-grid" id="leaderboard-grid" style="display: none;"></div>
+
+        <div class="footer-wrapper">
+            <div id="powered-by-section"></div>
+            <div class="disclaimer">
+                <p id="disclaimer-text"></p>
+            </div>
+        </div>
+    </div>
+
+<script src="vendor/papaparse.min.js"></script>
+<script src="config.js"></script>
+<script>
+    // ============================================================
+    // Config resolution order:
+    //   1. config.js (self-hosted deployments; gitignored, see
+    //      config.example.js)
+    //   2. ?settings=...&data=... query params (hosted mode; Google
+    //      Sheets published-CSV URLs only)
+    //   3. ?demo=1 (bundled sample data)
+    // ============================================================
+    const REFRESH_MINUTES = 5;
+    const DEFAULT_CREDIT_URL = "https://github.com/cameronha/cohort-leaderboard";
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // Any URL that came out of a spreadsheet cell gets scheme-checked
+    // before it lands in an href or src.
+    function safeUrl(raw) {
+        const url = String(raw || '').trim();
+        return /^https?:\/\//i.test(url) ? url : "";
+    }
+
+    // Query-param sheet URLs are stricter: published Google Sheets CSV only,
+    // since hosted mode renders third-party data on the host's domain.
+    function safeSheetUrl(raw) {
+        const url = String(raw || '').trim();
+        return /^https:\/\/docs\.google\.com\/spreadsheets\//i.test(url) ? url : "";
+    }
+
+    function resolveConfig() {
+        const fileConfig = (typeof window.LEADERBOARD_CONFIG === 'object' && window.LEADERBOARD_CONFIG) || {};
+        if (fileConfig.settingsCsvUrl && fileConfig.dataCsvUrl) {
+            return { settings: fileConfig.settingsCsvUrl, data: fileConfig.dataCsvUrl, source: 'file' };
+        }
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('demo')) {
+            return { settings: 'sample-data/settings.csv', data: 'sample-data/leaderboard.csv', source: 'demo' };
+        }
+        const s = safeSheetUrl(params.get('settings'));
+        const d = safeSheetUrl(params.get('data'));
+        if (s && d) {
+            return { settings: s, data: d, source: 'params' };
+        }
+        return null;
+    }
+
+    function fetchCsv(url) {
+        return fetch(url, { cache: 'no-store' })
+            .then(resp => {
+                if (!resp.ok) throw new Error('Fetch failed: ' + resp.status);
+                return resp.text();
+            })
+            .then(text => Papa.parse(text.trim()).data);
+    }
+
+    // Scores arrive as strings: "45", "$1,200", "1.234,56" (European),
+    // "1,5". Handle both decimal conventions.
+    function parseScore(raw) {
+        if (raw === null || raw === undefined) return 0;
+        let s = String(raw).replace(/[^0-9.,-]/g, '');
+        if (!s) return 0;
+        const lastComma = s.lastIndexOf(',');
+        const lastDot = s.lastIndexOf('.');
+        if (lastComma > -1 && lastDot > -1) {
+            if (lastComma > lastDot) {
+                s = s.replace(/\./g, '').replace(',', '.');
+            } else {
+                s = s.replace(/,/g, '');
+            }
+        } else if (lastComma > -1) {
+            const commaCount = (s.match(/,/g) || []).length;
+            const digitsAfter = s.length - lastComma - 1;
+            if (commaCount === 1 && digitsAfter !== 3) {
+                s = s.replace(',', '.');
+            } else {
+                s = s.replace(/,/g, '');
+            }
+        }
+        return parseFloat(s) || 0;
+    }
+
+    // Settings tab layout (values in column A):
+    // A1 Title | A2 Date Range | A3 Explainer | A4 Disclaimer
+    // A5 Powered-by text | A6 Powered-by URL
+    // A7 Submit button text | A8 Submit button URL (blank = hidden)
+    // A9 Show score gap ON/OFF | A10 Stack columns on mobile ON/OFF
+    // A11 reserved (legacy QR row, ignored) | A12 Logo image URL
+    function parseSettings(rows) {
+        const a = i => (rows[i] && rows[i][0] !== undefined ? String(rows[i][0]).trim() : "");
+        return {
+            title: a(0) || "Cohort Leaderboard",
+            dateRange: a(1),
+            explainerText: a(2),
+            disclaimer: a(3),
+            poweredByText: a(4),
+            poweredByUrl: safeUrl(a(5)),
+            formLinkText: a(6),
+            formLinkUrl: safeUrl(a(7)),
+            showScoreGap: a(8).toUpperCase() === 'ON',
+            stackOnMobile: a(9).toUpperCase() === 'ON',
+            logoUrl: safeUrl(a(11))
+        };
+    }
+
+    // Form-question headers can be long ("📞 Outreach Made (DMs, emails...)"
+    // plus explanatory paragraphs). Display just the part before the first
+    // newline or parenthetical.
+    function cleanMetricTitle(header) {
+        let title = header.split('\n')[0];
+        const paren = title.indexOf(' (');
+        if (paren > 0) title = title.slice(0, paren);
+        return title.trim();
+    }
+
+    function buildLeaderboards(rows, showScoreGap) {
+        if (rows.length < 2) return [];
+
+        const headers = rows[0].map(h => String(h));
+        const dataRows = rows.slice(1);
+
+        const teamNameIndex = headers.findIndex(h => h.toLowerCase().includes('team') || h.toLowerCase().includes('name'));
+        const identifierIndex = teamNameIndex !== -1 ? teamNameIndex : 1;
+
+        const leaderboards = [];
+
+        for (let i = 0; i < headers.length; i++) {
+            const metricName = headers[i];
+            if (i === 0 || i === identifierIndex) continue;
+            if (!metricName.trim()) continue;
+
+            const sortedData = dataRows.map(row => ({
+                team: String(row[identifierIndex] || '').trim(),
+                score: parseScore(row[i])
+            }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10);
+
+            const isCurrency = metricName.toLowerCase().includes('revenue') || metricName.toLowerCase().includes('sales') || metricName.includes('$') || metricName.toLowerCase().includes('earner');
+
+            let metricData = sortedData;
+
+            if (showScoreGap && sortedData.length > 0) {
+                const topScore = sortedData[0].score;
+
+                metricData = sortedData.map((item, index) => {
+                    if (!item.team && item.score === 0) {
+                        return { ...item, scoreGap: "" };
+                    }
+
+                    const gap = topScore - item.score;
+                    let scoreGapText = "";
+
+                    if (index === 0) {
+                        scoreGapText = "Leader";
+                    } else if (gap === 0) {
+                        let tiedRank = index;
+                        while (tiedRank > 0 && sortedData[tiedRank - 1].score === item.score) {
+                            tiedRank--;
+                        }
+                        scoreGapText = tiedRank === 0 ? "Leader" : `Tied with #${tiedRank + 1}`;
+                    } else {
+                        const formattedGap = isCurrency
+                            ? '$' + Math.round(gap).toLocaleString('en-US')
+                            : Math.round(gap).toLocaleString('en-US');
+                        scoreGapText = `${formattedGap} behind`;
+                    }
+
+                    return { ...item, scoreGap: scoreGapText };
+                });
+            }
+
+            leaderboards.push({ metricTitle: cleanMetricTitle(metricName), data: metricData, isCurrency: isCurrency });
+        }
+
+        return leaderboards;
+    }
+
+    function renderFooter(settings) {
+        const section = document.getElementById('powered-by-section');
+        const text = settings.poweredByText;
+        const url = settings.poweredByUrl;
+        const logo = settings.logoUrl;
+
+        if (text || logo) {
+            let html = '';
+            if (text) {
+                html += url && !logo
+                    ? `<span class="powered-by-text"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(text)}</a></span>`
+                    : `<span class="powered-by-text">${escapeHtml(text)}</span>`;
+            }
+            if (logo) {
+                const img = `<img src="${escapeHtml(logo)}" alt="${escapeHtml(text || 'Logo')}" class="powered-by-logo">`;
+                html += url
+                    ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${img}</a>`
+                    : img;
+            }
+            section.innerHTML = html;
+        } else {
+            section.innerHTML = `<span class="powered-by-text">Made with <a href="${DEFAULT_CREDIT_URL}" target="_blank" rel="noopener">Cohort Leaderboard</a></span>`;
+        }
+    }
+
+    function renderLeaderboard(settings, leaderboards) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('leaderboard-grid').style.display = 'grid';
+
+        const styleElement = document.getElementById('mobile-stacking-style');
+        if (settings.stackOnMobile) {
+            styleElement.innerHTML = `
+                @media (max-width: 968px) {
+                    .leaderboard-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .column-outreach {
+                        border-right: none;
+                        border-bottom: 2px solid #DCE2E5;
+                    }
+                }
+            `;
+        } else {
+            styleElement.innerHTML = '';
+        }
+
+        document.getElementById('main-title').textContent = settings.title;
+        document.title = settings.title;
+
+        let subtitle = '';
+        if (settings.dateRange) subtitle += settings.dateRange;
+        if (settings.dateRange && settings.explainerText) subtitle += ' | ';
+        if (settings.explainerText) subtitle += settings.explainerText;
+        document.getElementById('subtitle-text').textContent = subtitle;
+
+        const submitButton = document.getElementById('submit-button');
+        if (settings.formLinkUrl) {
+            submitButton.href = settings.formLinkUrl;
+            submitButton.textContent = settings.formLinkText || 'Submit Updates';
+            submitButton.style.display = 'inline-block';
+        } else {
+            submitButton.style.display = 'none';
+        }
+
+        document.getElementById('disclaimer-text').textContent = settings.disclaimer;
+        renderFooter(settings);
+
+        const grid = document.getElementById('leaderboard-grid');
+        grid.innerHTML = '';
+
+        leaderboards.forEach((board, index) => {
+            const sectionDiv = document.createElement('div');
+            const columnClass = index === 0 ? 'column-outreach' : 'column-earner';
+
+            sectionDiv.classList.add('column', columnClass);
+
+            const headerDiv = document.createElement('div');
+            headerDiv.classList.add('column-header');
+            headerDiv.innerHTML = `<h2 class="column-title">${escapeHtml(board.metricTitle)}</h2>`;
+            sectionDiv.appendChild(headerDiv);
+
+            renderList(board.data, sectionDiv, board.isCurrency);
+
+            grid.appendChild(sectionDiv);
+        });
+
+        if (leaderboards.length === 0) {
+            grid.innerHTML = '<p style="text-align: center; color: var(--color-dark-gray); padding: 40px;">No metrics found in the data sheet.</p>';
+            grid.style.display = 'block';
+        }
+    }
+
+    function renderList(listData, columnElement, isCurrency) {
+        if (listData.length === 0) {
+            columnElement.innerHTML += '<p style="text-align: center; color: var(--color-dark-gray); padding: 10px;">No data to display.</p>';
+            return;
+        }
+
+        // Show at least 5 rows, at most 10, tracking the number of active teams
+        const actualTeamsCount = listData.filter(item => item.team && item.team.trim() !== '').length;
+        const maxDisplaySize = Math.min(10, Math.max(5, actualTeamsCount + 2));
+
+        listData.forEach((item, index) => {
+            if (index >= maxDisplaySize) return;
+
+            const rank = index + 1;
+            const entryDiv = document.createElement('div');
+            entryDiv.classList.add('entry');
+
+            if (rank === 1) entryDiv.classList.add('first');
+            else if (rank === 2) entryDiv.classList.add('second');
+            else if (rank === 3) entryDiv.classList.add('third');
+
+            const scoreValue = item.score;
+            const isPlaceholderRow = scoreValue === 0 && !item.team;
+
+            const teamName = isPlaceholderRow ? 'Your Team Name' : item.team;
+            const teamNameClass = isPlaceholderRow ? 'name placeholder' : 'name';
+
+            let formattedScore;
+            let scoreNumberClass = 'score-number';
+
+            if (isPlaceholderRow) {
+                formattedScore = '—';
+                scoreNumberClass += ' placeholder';
+            } else if (isCurrency) {
+                formattedScore = '$' + scoreValue.toLocaleString('en-US');
+            } else {
+                formattedScore = scoreValue.toLocaleString('en-US');
+            }
+
+            let rankContent;
+            if (rank === 1) rankContent = '<span class="medal">🥇</span>';
+            else if (rank === 2) rankContent = '<span class="medal">🥈</span>';
+            else if (rank === 3) rankContent = '<span class="medal">🥉</span>';
+            else rankContent = `<span class="rank">${rank}</span>`;
+
+            const scoreGapHtml = item.scoreGap && !isPlaceholderRow
+                ? `<span class="score-gap">${escapeHtml(item.scoreGap)}</span>`
+                : '';
+
+            entryDiv.innerHTML = `
+                <div class="left-side">
+                    ${rankContent}
+                    <span class="${teamNameClass}">${escapeHtml(teamName)}</span>
+                </div>
+                <div class="score">
+                    <span class="${scoreNumberClass}">${formattedScore}</span>
+                    ${scoreGapHtml}
+                </div>
+            `;
+
+            columnElement.appendChild(entryDiv);
+        });
+    }
+
+    function showMessage(mainHtml, noteHtml) {
+        const loading = document.getElementById('loading');
+        loading.style.display = 'block';
+        loading.innerHTML = mainHtml + (noteHtml ? `<div class="setup-note">${noteHtml}</div>` : '');
+        document.getElementById('leaderboard-grid').style.display = 'none';
+        document.getElementById('powered-by-section').innerHTML =
+            `<span class="powered-by-text">Made with <a href="${DEFAULT_CREDIT_URL}" target="_blank" rel="noopener">Cohort Leaderboard</a></span>`;
+    }
+
+    function loadAndRender(config) {
+        Promise.all([fetchCsv(config.settings), fetchCsv(config.data)])
+            .then(([settingsRows, dataRows]) => {
+                const settings = parseSettings(settingsRows);
+                const leaderboards = buildLeaderboards(dataRows, settings.showScoreGap);
+                renderLeaderboard(settings, leaderboards);
+            })
+            .catch(err => {
+                console.error(err);
+                showMessage('Could not load leaderboard data.',
+                    'Check that both sheet tabs are published to the web as CSV and the URLs are correct.<br>' +
+                    'In Google Sheets: File &gt; Share &gt; Publish to web.');
+            });
+    }
+
+    window.onload = function() {
+        const config = resolveConfig();
+        if (!config) {
+            document.getElementById('main-title').textContent = 'Cohort Leaderboard';
+            document.getElementById('subtitle-text').textContent = 'Turn a Google Sheet into a live leaderboard for your program.';
+            showMessage('No leaderboard configured.',
+                'To create one, use the <a href="make.html">leaderboard builder</a>, ' +
+                'or see the <a href="' + DEFAULT_CREDIT_URL + '" target="_blank" rel="noopener">setup guide</a>.<br>' +
+                'Want to see what it looks like? <a href="?demo=1">View the demo</a>.');
+            return;
+        }
+        loadAndRender(config);
+        setInterval(() => loadAndRender(config), REFRESH_MINUTES * 60 * 1000);
+    };
+</script>
+</body>
+</html>
