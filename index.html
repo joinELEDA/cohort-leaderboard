@@ -271,6 +271,28 @@
         return /^https:\/\/docs\.google\.com\/spreadsheets\//i.test(url) ? url : "";
     }
 
+    // Inline settings carried in the board URL itself (v2 flow: the builder
+    // bakes title/dates/etc. into the link, no settings sheet needed).
+    const PARAM_FIELDS = {
+        title: 'title', dates: 'dateRange', explainer: 'explainerText',
+        disclaimer: 'disclaimer', pbtext: 'poweredByText', pburl: 'poweredByUrl',
+        btntext: 'formLinkText', form: 'formLinkUrl', gap: 'showScoreGap',
+        stack: 'stackOnMobile', agg: 'aggregate', logo: 'logoUrl', since: 'sinceDate'
+    };
+
+    function paramsToSettings(params) {
+        const raw = {};
+        for (const [param, field] of Object.entries(PARAM_FIELDS)) {
+            const v = params.get(param);
+            if (v !== null && v !== '') raw[field] = v;
+        }
+        // URL-mode defaults differ from sheet mode: these are the template's
+        // recommended values, applied unless the link says otherwise.
+        if (!('stackOnMobile' in raw)) raw.stackOnMobile = 'ON';
+        if (!('aggregate' in raw)) raw.aggregate = 'SUM';
+        return finishSettings(raw);
+    }
+
     function resolveConfig() {
         const fileConfig = (typeof window.LEADERBOARD_CONFIG === 'object' && window.LEADERBOARD_CONFIG) || {};
         if (fileConfig.settingsCsvUrl && fileConfig.dataCsvUrl) {
@@ -284,6 +306,10 @@
         const d = safeSheetUrl(params.get('data'));
         if (s && d) {
             return { settings: s, data: d, source: 'params' };
+        }
+        // v2: no settings sheet — settings ride in the URL itself
+        if (d) {
+            return { data: d, inline: paramsToSettings(params), source: 'inline' };
         }
         return null;
     }
@@ -682,9 +708,11 @@
     }
 
     function loadAndRender(config) {
-        Promise.all([fetchCsv(config.settings), fetchCsv(config.data)])
-            .then(([settingsRows, dataRows]) => {
-                const settings = parseSettings(settingsRows);
+        const settingsPromise = config.inline
+            ? Promise.resolve(config.inline)
+            : fetchCsv(config.settings).then(parseSettings);
+        Promise.all([settingsPromise, fetchCsv(config.data)])
+            .then(([settings, dataRows]) => {
                 const leaderboards = buildLeaderboards(dataRows, settings);
                 renderLeaderboard(settings, leaderboards);
             })

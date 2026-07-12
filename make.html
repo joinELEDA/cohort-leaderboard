@@ -33,21 +33,41 @@
         h1 { font-size: 34px; font-weight: 800; color: var(--color-dark-text); margin-bottom: 10px; }
         .lede { font-size: 17px; color: var(--color-dark-gray); margin-bottom: 28px; line-height: 1.5; }
         .lede a { color: var(--color-accent); font-weight: 600; }
-        ol.steps { margin: 0 0 28px 20px; color: var(--color-darker-gray); line-height: 1.7; font-size: 15px; }
-        ol.steps li { margin-bottom: 10px; }
+        .steps-box {
+            background: var(--color-light-gray);
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin-bottom: 28px;
+        }
+        .steps-box p { font-weight: 700; font-size: 15px; color: var(--color-dark-text); margin-bottom: 8px; }
+        ol.steps { margin: 0 0 0 20px; color: var(--color-darker-gray); line-height: 1.7; font-size: 15px; }
+        ol.steps li { margin-bottom: 8px; }
         ol.steps b { color: var(--color-dark-text); }
+        ol.steps a { color: var(--color-accent); font-weight: 600; }
         label { display: block; font-weight: 700; font-size: 15px; color: var(--color-dark-text); margin: 18px 0 6px; }
-        input[type="url"] {
+        label .opt { font-weight: 400; color: var(--color-dark-gray); font-size: 13px; }
+        input[type="url"], input[type="text"], select, textarea {
             width: 100%;
+            min-width: 0;
             padding: 12px 14px;
             font-size: 14px;
             font-family: inherit;
             border: 2px solid var(--color-light-gray);
             border-radius: 10px;
+            background: white;
+            color: var(--color-dark-text);
         }
-        input[type="url"]:focus { outline: none; border-color: var(--color-accent); }
+        textarea { resize: vertical; min-height: 64px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--color-accent); }
         .hint { font-size: 13px; color: var(--color-dark-gray); margin-top: 4px; }
-        button {
+        details {
+            margin-top: 24px;
+            border: 2px solid var(--color-light-gray);
+            border-radius: 12px;
+            padding: 14px 18px;
+        }
+        details summary { font-weight: 700; font-size: 15px; color: var(--color-darker-gray); cursor: pointer; }
+        button.primary {
             margin-top: 26px;
             background: var(--color-accent);
             color: white;
@@ -60,7 +80,7 @@
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(81, 147, 189, 0.4);
         }
-        button:hover { background: var(--color-navy); }
+        button.primary:hover { background: var(--color-navy); }
         #result {
             display: none;
             margin-top: 26px;
@@ -78,11 +98,9 @@
             color: var(--color-accent);
         }
         .copy-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
-        .copy-row button { margin-top: 0; padding: 8px 16px; font-size: 13px; }
+        .copy-row button { margin-top: 0; padding: 8px 16px; font-size: 13px; background: var(--color-accent); color: white; border: none; border-radius: 16px; font-family: inherit; font-weight: 700; cursor: pointer; }
         .footer-note { text-align: center; font-size: 13px; color: var(--color-dark-gray); margin-top: 24px; }
         .footer-note a { color: var(--color-accent); font-weight: 600; }
-        input[type="url"] { min-width: 0; }
-        #result a.board-link { word-break: break-all; }
         @media (max-width: 600px) {
             body { padding: 16px 10px; }
             .card { padding: 24px 16px; }
@@ -94,38 +112,90 @@
 <body>
     <div class="card">
         <h1>Make a leaderboard</h1>
-        <p class="lede">Turn a Google Sheet into a live leaderboard for your cohort.
-            No account, nothing to install. Founders submit numbers through your
-            Google Form; this page gives you a link to the live board.
-            Never seen one? <a href="?demo=1" id="demo-link">View the demo</a>.</p>
+        <p class="lede">A live scoreboard for your cohort. Participants submit
+            numbers through a Google Form; you get a link to put on the projector.
+            Free, no account. Never seen one? <a href="index.html?demo=1">View the demo</a>.</p>
 
-        <ol class="steps">
-            <li><b>Copy the two templates:</b>
-                <a href="https://docs.google.com/forms/d/17q-DL4U1WSOZMjLW-1eFvITgf3WCB2dZmNdtcMeoSps/copy" target="_blank" rel="noopener">the Form</a>
-                and <a href="https://docs.google.com/spreadsheets/d/1ERtFGoGEOolNR0qk1G7O0xisJzjbQKsIxeCfuum0R64/copy" target="_blank" rel="noopener">the Settings sheet</a>.
-                In your Form copy: click <b>Publish</b> (top right), then Responses &gt; <b>Link to Sheets</b>. In your
-                Settings copy: paste your Form's share link into the "Submit button URL" row.
-                (Full details in the <a href="https://github.com/cameronha/cohort-leaderboard#quickstart" target="_blank" rel="noopener">setup guide</a>.)</li>
-            <li>You now have two spreadsheets: your Form's responses sheet and
-                your Settings sheet. In each one: <b>File &gt; Share &gt; Publish to web</b>,
-                pick the tab, choose <b>Comma-separated values (.csv)</b>, publish, copy the URL.</li>
-            <li>Paste the two URLs below.</li>
-        </ol>
+        <div class="steps-box">
+            <p>Before you fill this in (about 10 minutes in Google):</p>
+            <ol class="steps">
+                <li><a href="https://docs.google.com/forms/d/17q-DL4U1WSOZMjLW-1eFvITgf3WCB2dZmNdtcMeoSps/copy" target="_blank" rel="noopener">Copy the template form</a>,
+                    then in your copy click <b>Publish</b> (top right), then
+                    <b>Responses &gt; Link to Sheets</b> to create your responses
+                    spreadsheet.</li>
+                <li>In that responses spreadsheet: <b>File &gt; Share &gt; Publish
+                    to web</b>. First dropdown: pick <b>Form Responses 1</b>.
+                    Second dropdown: pick <b>Comma-separated values (.csv)</b>.
+                    Publish, copy the URL.</li>
+                <li>Fill in the boxes below. Done.</li>
+            </ol>
+        </div>
 
-        <label for="settings-url">Settings tab published-CSV URL</label>
-        <input type="url" id="settings-url" placeholder="https://docs.google.com/spreadsheets/d/e/...&output=csv">
-        <div class="hint">From the spreadsheet with your title, dates, and options.</div>
+        <label for="f-data">Responses spreadsheet published-CSV URL</label>
+        <input type="url" id="f-data" placeholder="https://docs.google.com/spreadsheets/d/e/...output=csv">
+        <div class="hint">The URL from step 2.</div>
 
-        <label for="data-url">Responses tab published-CSV URL</label>
-        <input type="url" id="data-url" placeholder="https://docs.google.com/spreadsheets/d/e/...&output=csv">
-        <div class="hint">From the spreadsheet collecting your Google Form responses.</div>
+        <label for="f-title">Board title</label>
+        <input type="text" id="f-title" placeholder="Springfield Accelerator Leaderboard" maxlength="80">
 
-        <button id="build-btn">Build my leaderboard</button>
+        <label for="f-dates">Date label <span class="opt">(optional)</span></label>
+        <input type="text" id="f-dates" placeholder="Week 1 of 8" maxlength="80">
+
+        <label for="f-form">Your form's link <span class="opt">(optional, puts a Submit button on the board)</span></label>
+        <input type="url" id="f-form" placeholder="https://docs.google.com/forms/d/e/.../viewform">
+        <div class="hint">In your form: Publish/Send, copy the responder link.</div>
+
+        <label for="f-agg">When a team submits more than once</label>
+        <select id="f-agg">
+            <option value="SUM" selected>Add their submissions up (recommended)</option>
+            <option value="LATEST">Keep only their most recent submission</option>
+            <option value="MAX">Keep only their best submission</option>
+            <option value="RAW">Show every submission as its own row</option>
+        </select>
+
+        <details>
+            <summary>Advanced options</summary>
+
+            <label for="f-explainer">Explainer text <span class="opt">(shows after the date)</span></label>
+            <input type="text" id="f-explainer" placeholder="Resets every Monday at midnight" maxlength="120">
+
+            <label for="f-disclaimer">Disclaimer</label>
+            <textarea id="f-disclaimer">Disclaimer: All numbers are self-reported. The point of this leaderboard is motivation and community. Awards and recognition are at the discretion of the program organizers.</textarea>
+
+            <label for="f-gap">Show "X behind" gap under scores</label>
+            <select id="f-gap">
+                <option value="" selected>Off</option>
+                <option value="ON">On</option>
+            </select>
+
+            <label for="f-since">Count submissions since <span class="opt">(optional, e.g. 12/8/2025)</span></label>
+            <input type="text" id="f-since" placeholder="">
+            <div class="hint">Older submissions stop counting. Note: changing this later means regenerating your link here. Programs that reset weekly may prefer the <a href="https://github.com/cameronha/cohort-leaderboard/blob/main/docs/template-sheet-setup.md" target="_blank" rel="noopener">settings-sheet mode</a>, where it's a cell you edit.</div>
+
+            <label for="f-pbtext">"Powered by" text <span class="opt">(optional)</span></label>
+            <input type="text" id="f-pbtext" placeholder="" maxlength="60">
+
+            <label for="f-pburl">"Powered by" / logo link URL <span class="opt">(optional)</span></label>
+            <input type="url" id="f-pburl" placeholder="">
+
+            <label for="f-logo">Logo image URL <span class="opt">(optional)</span></label>
+            <input type="url" id="f-logo" placeholder="">
+
+            <label for="f-settings">Settings sheet published-CSV URL <span class="opt">(instead of the boxes above)</span></label>
+            <input type="url" id="f-settings" placeholder="">
+            <div class="hint">Sheet-controlled mode: board text lives in a spreadsheet you edit. If set, the boxes above are ignored.</div>
+
+            <label for="f-edit">Edit an existing board</label>
+            <input type="url" id="f-edit" placeholder="Paste a board link to load its settings into this form">
+        </details>
+
+        <button class="primary" id="build-btn">Build my leaderboard</button>
 
         <div id="result"></div>
 
-        <p class="footer-note">Prefer to host it yourself, or want help setting it up?
-            <a href="https://github.com/cameronha/cohort-leaderboard" target="_blank" rel="noopener">Setup guide and contact</a></p>
+        <p class="footer-note">Want an AI to walk you through the whole setup?
+            Use the <a href="https://github.com/cameronha/cohort-leaderboard/blob/main/PLAYBOOK.md" target="_blank" rel="noopener">playbook</a>.
+            Rather have it done for you? <a href="https://actionworks.co" target="_blank" rel="noopener">actionworks.co</a></p>
     </div>
 
 <script>
@@ -154,50 +224,91 @@
         resultDiv.innerHTML = '<p>' + msg + '</p>';
     }
 
-    document.getElementById('demo-link').href = 'index.html?demo=1';
+    const FIELD_TO_PARAM = {
+        'f-title': 'title', 'f-dates': 'dates', 'f-explainer': 'explainer',
+        'f-disclaimer': 'disclaimer', 'f-form': 'form', 'f-gap': 'gap',
+        'f-since': 'since', 'f-pbtext': 'pbtext', 'f-pburl': 'pburl',
+        'f-logo': 'logo', 'f-agg': 'agg'
+    };
+    const DEFAULT_DISCLAIMER = document.getElementById('f-disclaimer').value;
+
+    // Edit flow: paste an existing board link, prefill the form from it.
+    document.getElementById('f-edit').addEventListener('change', function() {
+        let parsed;
+        try { parsed = new URL(this.value.trim()); } catch (e) { return; }
+        const p = parsed.searchParams;
+        if (p.get('data')) document.getElementById('f-data').value = p.get('data');
+        if (p.get('settings')) document.getElementById('f-settings').value = p.get('settings');
+        for (const [id, param] of Object.entries(FIELD_TO_PARAM)) {
+            if (p.get(param) !== null) document.getElementById(id).value = p.get(param);
+        }
+        if (p.get('agg')) document.getElementById('f-agg').value = p.get('agg');
+        this.value = '';
+    });
 
     document.getElementById('build-btn').onclick = async function() {
-        const settings = normalizeSheetUrl(document.getElementById('settings-url').value);
-        const data = normalizeSheetUrl(document.getElementById('data-url').value);
+        const data = normalizeSheetUrl(document.getElementById('f-data').value);
+        const settingsSheet = normalizeSheetUrl(document.getElementById('f-settings').value);
 
-        if (!isSheetCsvUrl(settings) || !isSheetCsvUrl(data)) {
-            fail('Both fields need Google Sheets published-CSV URLs (they start with https://docs.google.com/spreadsheets/). Use File &gt; Share &gt; Publish to web in each sheet and pick the CSV format.');
+        if (!isSheetCsvUrl(data)) {
+            fail('The responses URL needs to be a Google Sheets published-CSV link (it starts with https://docs.google.com/spreadsheets/). In your responses spreadsheet use File &gt; Share &gt; Publish to web, pick the Form Responses 1 tab and the CSV format.');
             return;
         }
-        if (settings === data) {
-            fail('Those are the same URL. The Settings tab and the responses tab each need their own published-CSV URL (watch the gid= number; it differs per tab).');
+        if (settingsSheet && !isSheetCsvUrl(settingsSheet)) {
+            fail('The settings sheet URL doesn\'t look like a published-CSV link. Leave it blank to use the boxes above instead.');
+            return;
+        }
+        if (settingsSheet && settingsSheet === data) {
+            fail('The settings URL and responses URL are the same. They must come from two different spreadsheets (check the gid= number).');
+            return;
+        }
+        const formLink = document.getElementById('f-form').value.trim();
+        if (formLink && !/^https:\/\//i.test(formLink)) {
+            fail('The form link should start with https:// (copy the responder link from your form\'s Publish/Send dialog).');
             return;
         }
 
-        this.textContent = 'Checking your sheets...';
+        this.textContent = 'Checking your sheet...';
         this.disabled = true;
-
         let ok = true;
         try {
-            const [r1, r2] = await Promise.all([fetch(settings), fetch(data)]);
-            ok = r1.ok && r2.ok;
-        } catch (e) {
-            ok = false;
-        }
-
+            const checks = [fetch(data)];
+            if (settingsSheet) checks.push(fetch(settingsSheet));
+            ok = (await Promise.all(checks)).every(r => r.ok);
+        } catch (e) { ok = false; }
         this.textContent = 'Build my leaderboard';
         this.disabled = false;
 
         if (!ok) {
-            fail('One of those URLs did not respond like a published sheet. Double-check both tabs are published (File &gt; Share &gt; Publish to web) and that you copied the full URL ending in output=csv.');
+            fail('That URL did not respond like a published sheet. Double-check the tab is published (File &gt; Share &gt; Publish to web) and you copied the full URL ending in output=csv.');
             return;
         }
 
         const link = new URL('index.html', window.location.href);
-        link.searchParams.set('settings', settings);
-        link.searchParams.set('data', data);
+        if (settingsSheet) {
+            link.searchParams.set('settings', settingsSheet);
+            link.searchParams.set('data', data);
+        } else {
+            link.searchParams.set('data', data);
+            for (const [id, param] of Object.entries(FIELD_TO_PARAM)) {
+                const v = document.getElementById(id).value.trim();
+                if (!v) continue;
+                if (param === 'agg' && v === 'SUM') continue;           // default
+                if (param === 'disclaimer' && v === DEFAULT_DISCLAIMER) {
+                    link.searchParams.set(param, v);                    // keep: boards should carry it
+                    continue;
+                }
+                link.searchParams.set(param, v);
+            }
+        }
 
         resultDiv.className = '';
         resultDiv.style.display = 'block';
         resultDiv.innerHTML =
-            '<p><b>Your leaderboard is live.</b> Bookmark this link, put it on the projector, and share it with your cohort. It updates itself as submissions come in (allow up to 5 minutes).</p>' +
+            '<p><b>Your leaderboard is live.</b> Bookmark this link, put it on the projector, and share it with your cohort. New submissions appear within about 5 minutes.</p>' +
             '<a class="board-link" href="' + link.href + '" target="_blank" rel="noopener"></a>' +
-            '<div class="copy-row"><button id="copy-btn">Copy link</button><span class="hint" id="copy-msg"></span></div>';
+            '<div class="copy-row"><button id="copy-btn">Copy link</button><span class="hint" id="copy-msg"></span></div>' +
+            '<p style="margin-top:12px">To change the title or settings later: paste this link into the "Edit an existing board" box under Advanced options and rebuild.</p>';
         resultDiv.querySelector('.board-link').textContent = link.href;
         document.getElementById('copy-btn').onclick = function() {
             navigator.clipboard.writeText(link.href).then(() => {

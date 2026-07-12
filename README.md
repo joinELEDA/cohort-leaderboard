@@ -35,42 +35,44 @@ Google Form  →  Google Sheet  →  published CSV  →  this page
   CSVs), and the page re-checks automatically, so a projector display stays
   current all session.
 
-## Quickstart (no code, ~20 minutes)
+## Quickstart (no code, ~15 minutes)
 
-### 1. Copy the two templates
+### 1. Copy the form
 
-- **[Copy the template Form](https://docs.google.com/forms/d/17q-DL4U1WSOZMjLW-1eFvITgf3WCB2dZmNdtcMeoSps/copy)**
-  (sign in to Google if asked). Then, in your copy: click **Publish** (top
-  right; copies arrive unpublished and can't accept submissions until you
-  do), then open the Responses tab and click **Link to Sheets** to create
-  your response spreadsheet.
-  Rename or add metric questions freely; every question after the name
-  becomes its own leaderboard.
-- **[Copy the template Settings sheet](https://docs.google.com/spreadsheets/d/1ERtFGoGEOolNR0qk1G7O0xisJzjbQKsIxeCfuum0R64/copy)**.
-  Edit the title and dates, and paste your Form's share link into the
-  "Submit button URL" row (that's what the board's Submit button opens).
-
-Prefer to build from scratch? Everything the templates contain is documented
-in [docs/template-sheet-setup.md](docs/template-sheet-setup.md).
+**[Copy the template Form](https://docs.google.com/forms/d/17q-DL4U1WSOZMjLW-1eFvITgf3WCB2dZmNdtcMeoSps/copy)**
+(sign in to Google if asked). Then, in your copy: click **Publish** (top
+right; copies arrive unpublished and can't accept submissions until you
+do), then open the Responses tab and click **Link to Sheets** to create
+your response spreadsheet. Rename or add metric questions freely; every
+question after the name becomes its own leaderboard.
 
 Running a university program or anywhere real names are sensitive? Tell
 participants to enter a company name or handle. The board shows whatever
 they type.
 
-### 2. Publish both as CSV
+### 2. Publish the responses as CSV
 
-In each spreadsheet: **File > Share > Publish to web**, pick the tab (the
-Form-responses tab in one, Settings in the other), choose
-**Comma-separated values (.csv)**, publish, copy the URL.
+In the response spreadsheet: **File > Share > Publish to web**. First
+dropdown: pick the **Form Responses 1** tab (not Entire Document). Second
+dropdown: pick **Comma-separated values (.csv)** (not Web page). Publish,
+copy the URL.
 
 If Publish to web is missing, your Google Workspace admin has disabled it;
-redo the sheets from a personal Google account.
+redo the form from a personal Google account.
 
-### 3. Get your link
+### 3. Fill in the builder
 
-Go to the **[leaderboard builder](https://cohort-leaderboard.netlify.app/make.html)**,
-paste the two URLs, done. Bookmark the link it gives you; that's your live
-board.
+Go to the **[leaderboard builder](https://cohort-leaderboard.netlify.app/make.html)**:
+paste the URL from step 2, type your board's title and dates, add your
+form's share link (that becomes the board's Submit button), click Build.
+Bookmark the link it gives you; that's your live board. To change settings
+later, paste your board link into the builder's "Edit an existing board"
+box and rebuild.
+
+**Prefer settings that live in a spreadsheet** (e.g. weekly resets by
+editing one cell instead of rebuilding a link)? Copy the
+**[Settings sheet template](https://docs.google.com/spreadsheets/d/1ERtFGoGEOolNR0qk1G7O0xisJzjbQKsIxeCfuum0R64/copy)**
+and see [docs/template-sheet-setup.md](docs/template-sheet-setup.md).
 
 ## Settings sheet reference
 

@@ -18,12 +18,12 @@ function extractInlineScript(html) {
 }
 
 function evalWithStubs(code) {
-    const stubEl = () => ({ style: {}, searchParams: null });
+    const stubEl = () => ({ style: {}, searchParams: null, value: '', addEventListener: () => {} });
     const sandbox = { window: {}, document: { getElementById: stubEl, querySelector: stubEl }, Papa: undefined, fetch: undefined, setInterval: () => {}, URLSearchParams, URL, console, navigator: {} };
     const names = [
         'parseScore', 'cleanMetricTitle', 'parseSettings', 'aggregateByTeam',
         'buildLeaderboards', 'safeUrl', 'safeSheetUrl', 'escapeHtml',
-        'normalizeSheetUrl', 'isSheetCsvUrl'
+        'normalizeSheetUrl', 'isSheetCsvUrl', 'paramsToSettings'
     ];
     const collector = `;return ({${names.map(n => `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(',')}})`;
     const fn = new Function(...Object.keys(sandbox), code + collector);
@@ -141,6 +141,27 @@ eq(boards[1].data.map(e => e.team + '=' + e.score), ['Alpha=200', 'Beta=100'], '
 boards = lib.buildLeaderboards(dataRows, cfg({ showScoreGap: true }));
 eq(boards[0].data[0].scoreGap, 'Leader', 'score gap leader label');
 eq(boards[0].data[1].scoreGap, '3 behind', 'score gap behind label');
+
+// --- paramsToSettings: v2 inline settings from the board URL ---
+const p1 = lib.paramsToSettings(new URLSearchParams(
+    'title=EDO Board&dates=Week 2&form=https://forms.gle/abc&gap=ON&agg=LATEST&since=12/8/2025&btntext=Report'));
+eq(p1.title, 'EDO Board', 'params title');
+eq(p1.dateRange, 'Week 2', 'params dates');
+eq(p1.formLinkUrl, 'https://forms.gle/abc', 'params form link');
+eq(p1.formLinkText, 'Report', 'params button text');
+eq(p1.showScoreGap, true, 'params gap ON');
+eq(p1.aggregate, 'LATEST', 'params agg override');
+eq(p1.sinceDate instanceof Date && !isNaN(p1.sinceDate), true, 'params since parses');
+
+const p2 = lib.paramsToSettings(new URLSearchParams('data=x'));
+eq(p2.title, 'Cohort Leaderboard', 'params default title');
+eq(p2.aggregate, 'SUM', 'params default agg SUM');
+eq(p2.stackOnMobile, true, 'params default stack ON');
+eq(p2.showScoreGap, false, 'params default gap off');
+
+const p3 = lib.paramsToSettings(new URLSearchParams('form=javascript:alert(1)&logo=data:text/html,x'));
+eq(p3.formLinkUrl, '', 'params form link sanitized');
+eq(p3.logoUrl, '', 'params logo sanitized');
 
 // --- normalizeSheetUrl (make.html) ---
 eq(makeLib.normalizeSheetUrl('https://docs.google.com/spreadsheets/d/e/X/pubhtml'), 'https://docs.google.com/spreadsheets/d/e/X/pub?output=csv', 'normalize pubhtml -> pub csv');
