@@ -168,22 +168,15 @@
 
             <label for="f-disclaimer">Disclaimer</label>
             <textarea id="f-disclaimer">Disclaimer: All numbers are self-reported. The point of this leaderboard is motivation and community. Awards and recognition are at the discretion of the program organizers.</textarea>
-
-            <label for="f-since">Count submissions since <span class="opt">(optional, e.g. 12/8/2025)</span></label>
-            <input type="text" id="f-since" placeholder="">
-            <div class="hint">Older submissions stop counting. Changing this later means rebuilding your link here; programs that reset weekly may prefer the <a href="https://github.com/cameronha/cohort-leaderboard/blob/main/docs/template-sheet-setup.md" target="_blank" rel="noopener">spreadsheet-controlled mode</a>.</div>
-
-            <label for="f-edit">Edit an existing board</label>
-            <input type="url" id="f-edit" placeholder="Paste a board link to load its settings into this form">
         </details>
 
         <button class="primary" id="build-btn">Build my leaderboard</button>
 
         <div id="result"></div>
 
-        <p class="footer-note">Want an AI to walk you through the whole setup?
-            Use the <a href="https://github.com/cameronha/cohort-leaderboard/blob/main/PLAYBOOK.md" target="_blank" rel="noopener">playbook</a>.
-            Rather have it done for you? <a href="https://actionworks.co" target="_blank" rel="noopener">actionworks.co</a></p>
+        <p class="footer-note">Want a guide? <a href="https://github.com/cameronha/cohort-leaderboard/blob/main/PLAYBOOK.md" target="_blank" rel="noopener">Give this file to your favorite AI</a>
+            and it will walk you through setup step by step.
+            Rather pay professionals to set it up for you? <a href="https://actionworks.co" target="_blank" rel="noopener">actionworks.co</a></p>
     </div>
 
 <script>
@@ -227,22 +220,8 @@
 
     const FIELD_TO_PARAM = {
         'f-title': 'title', 'f-dates': 'explainer', 'f-disclaimer': 'disclaimer',
-        'f-form': 'form', 'f-since': 'since', 'f-agg': 'agg'
+        'f-form': 'form', 'f-agg': 'agg'
     };
-
-    // Edit flow: paste an existing board link, prefill the form from it.
-    document.getElementById('f-edit').addEventListener('change', function() {
-        let parsed;
-        try { parsed = new URL(this.value.trim()); } catch (e) { return; }
-        const p = parsed.searchParams;
-        if (p.get('data')) document.getElementById('f-data').value = p.get('data');
-        for (const [id, param] of Object.entries(FIELD_TO_PARAM)) {
-            if (p.get(param) !== null) document.getElementById(id).value = p.get(param);
-        }
-        // Older links may carry a dates param; fold it into the note field.
-        if (p.get('dates') && !p.get('explainer')) document.getElementById('f-dates').value = p.get('dates');
-        this.value = '';
-    });
 
     document.getElementById('build-btn').onclick = async function() {
         const data = normalizeSheetUrl(document.getElementById('f-data').value);
@@ -299,7 +278,7 @@
             '<a class="board-link" href="' + link.href + '" target="_blank" rel="noopener"></a>' +
             '<div class="copy-row"><button id="copy-btn">Copy link</button><span class="hint" id="copy-msg"></span></div>' +
             '<p style="margin-top:12px"><b>Final check:</b> open the board, click its Submit button, send a test entry. It appears on the board within about 5 minutes (Google refreshes on a delay). Then delete the test row from your responses spreadsheet.</p>' +
-            '<p>To change the title or settings later: paste this link into "Edit an existing board" under Advanced options and rebuild.</p>';
+            '<p>To change the title or settings later: come back here and rebuild (it\'s four boxes; your step-3 link stays the same).</p>';
         resultDiv.querySelector('.board-link').textContent = link.href;
         document.getElementById('copy-btn').onclick = function() {
             navigator.clipboard.writeText(link.href).then(() => {

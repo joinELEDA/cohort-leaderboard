@@ -28,6 +28,20 @@ freeze pending real-user feedback), simplest thing that works.
 
 ## Task list (roughly in order)
 
+0. **Cam's direct notes for Opus (2026-07-12):**
+   - The README demo screenshot (assets/demo-board.png) is outdated (shows
+     old demo settings); recapture from ?demo=1 (headless Chrome at
+     1400x1050 worked; see the memory file for the command shape).
+   - The builder's three-step box has too much text. Cam wants
+     thumbnails/annotated screenshots (circles on Publish, Link to Sheets,
+     the two publish-to-web dropdowns) inline with the steps. Cam must
+     supply/approve screenshots from his Google account; annotate and
+     embed them (assets/, referenced from make.html), keeping text short.
+   - General direction: less text everywhere, more images.
+   - Removed from builder as too complex for first-timers (Cam's calls,
+     don't re-add without his ask): count-since field, edit-existing-board
+     box, gap/logo/powered-by fields, settings-sheet field.
+
 1. **Docs sweep for v1→v2 consistency.** README quickstart is updated;
    PLAYBOOK.md is NOT (it still walks the settings-sheet flow, phases
    4/5/7). Rewrite the playbook against the v2 flow: interview →
