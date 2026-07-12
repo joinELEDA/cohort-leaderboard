@@ -23,7 +23,8 @@ function evalWithStubs(code) {
     const names = [
         'parseScore', 'cleanMetricTitle', 'parseSettings', 'aggregateByTeam',
         'buildLeaderboards', 'safeUrl', 'safeSheetUrl', 'escapeHtml',
-        'normalizeSheetUrl', 'isSheetCsvUrl', 'paramsToSettings'
+        'normalizeSheetUrl', 'isSheetCsvUrl', 'paramsToSettings',
+        'isFormLink', 'classifyDataCsv'
     ];
     const collector = `;return ({${names.map(n => `${n}: typeof ${n} !== 'undefined' ? ${n} : undefined`).join(',')}})`;
     const fn = new Function(...Object.keys(sandbox), code + collector);
@@ -168,6 +169,15 @@ eq(makeLib.normalizeSheetUrl('https://docs.google.com/spreadsheets/d/e/X/pubhtml
 eq(makeLib.normalizeSheetUrl('https://docs.google.com/spreadsheets/d/e/X/pubhtml?gid=5&single=true'), 'https://docs.google.com/spreadsheets/d/e/X/pub?gid=5&single=true&output=csv', 'normalize pubhtml with params');
 eq(makeLib.normalizeSheetUrl('https://docs.google.com/spreadsheets/d/e/X/pub?gid=5&single=true&output=csv'), 'https://docs.google.com/spreadsheets/d/e/X/pub?gid=5&single=true&output=csv', 'normalize leaves good url alone');
 eq(makeLib.normalizeSheetUrl('not a url'), 'not a url', 'normalize passes garbage through for validation to reject');
+
+// --- builder guards: form-link and data-feed classification (make.html) ---
+eq(makeLib.isFormLink('https://docs.google.com/forms/d/e/XYZ/viewform'), true, 'isFormLink accepts forms url');
+eq(makeLib.isFormLink('https://forms.gle/abc'), true, 'isFormLink accepts forms.gle');
+eq(makeLib.isFormLink('https://docs.google.com/spreadsheets/d/e/X/pub?output=csv'), false, 'isFormLink rejects spreadsheet url');
+eq(makeLib.classifyDataCsv('What it controls,👉 Your input (edit this column),Notes\nTitle,X,Y'), 'settings-sheet', 'classify catches settings sheet');
+eq(makeLib.classifyDataCsv('Timestamp,Team Name,Outreach,Revenue\n1,2,3,4'), 'ok', 'classify accepts responses header');
+eq(makeLib.classifyDataCsv('Timestamp,Your name (or company),Outreach\n1,2,3'), 'ok', 'classify accepts name variant');
+eq(makeLib.classifyDataCsv('Week,Amount,Total\n1,2,3'), 'no-name-column', 'classify flags missing name column');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
