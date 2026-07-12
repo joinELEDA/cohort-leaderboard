@@ -15,7 +15,11 @@ its own response spreadsheet), copy the Settings sheet separately.
 
 ## The Form (template contents)
 
-Title: "Weekly Progress Update"
+Title: "Progress Update"
+
+(The form title is cosmetic; the board never reads it. Only the question
+wordings matter, since they become the board's column headers. Operators
+running monthly or quarterly cadences just set A13 accordingly.)
 
 1. **Your name (or your company's name — whatever you prefer)**
    Short answer. Required.
