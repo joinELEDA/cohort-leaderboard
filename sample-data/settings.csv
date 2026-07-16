@@ -1,13 +1,13 @@
 What it controls,👉 Your input (edit this column),Notes
 Title,Demo Cohort Leaderboard,The big headline on the board
 Date range,Week 3 of 8,Shows in the subtitle
-Explainer,Resets every Monday at midnight.,Shows after the date
+Explainer,,Shows after the date
 Disclaimer,Disclaimer: All numbers are self-reported. The point of this leaderboard is motivation and community. Awards and recognition are at the discretion of the program organizers.,Small print in the footer
 Powered by text,,Blank shows the default credit
 Powered by URL,,
 Submit button text,Submit Updates,The button founders click
 Submit button URL,https://example.com/your-google-form,Paste your Form's share link here
-Show score gap,ON,ON shows "X behind" under scores
+Show score gap,OFF,ON shows "X behind" under scores
 Stack on mobile,ON,One column on phones
 Multiple submissions,,Blank shows every submission
 Logo URL,,

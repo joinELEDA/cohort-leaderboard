@@ -111,8 +111,9 @@
 <body>
     <div class="card">
         <h1>Make a leaderboard</h1>
-        <p class="lede">Your participants type their numbers into a Google Form.
-            This page turns their answers into a live scoreboard you can put on a
+        <p class="lede">Your participants enter their revenue numbers (or whatever
+            it is you're tracking) into a Google Form. This page compiles what they
+            submit into a live scoreboard you can put on a
             projector. Free, nothing to install.
             Never seen one? <a href="index.html?demo=1">View the demo</a>.</p>
 
@@ -123,14 +124,16 @@
                 <p><a href="https://docs.google.com/forms/d/17q-DL4U1WSOZMjLW-1eFvITgf3WCB2dZmNdtcMeoSps/copy" target="_blank" rel="noopener">Copy the template form</a>
                 (sign in to Google if asked). In your copy, click
                 <b style="display:inline">Publish</b> in the top right corner.
-                Copies start turned off; publishing lets people submit.</p>
+                Your copy starts turned off. Clicking Publish is what lets your
+                participants submit.</p>
             </div>
             <div class="step">
                 <b>2. Create the spreadsheet where answers land.</b>
                 <p>In your form, click the <b style="display:inline">Responses</b> tab,
                 then <b style="display:inline">Link to Sheets</b>, then Create. Google opens
                 a new spreadsheet. From now on, every form submission automatically
-                appears as a row there. You never edit this spreadsheet; it fills itself.</p>
+                appears as a row there. It fills itself. The one time you'll touch it:
+                if someone submits a wrong number, fix the cell right in the sheet.</p>
             </div>
             <div class="step">
                 <b>3. Let the scoreboard read those answers.</b>
@@ -148,7 +151,7 @@
         <label for="f-title">Board title</label>
         <input type="text" id="f-title" placeholder="Springfield Accelerator Leaderboard" maxlength="80">
 
-        <label for="f-dates">Due date or note <span class="opt">(optional, shows under the title)</span></label>
+        <label for="f-dates">Due date <span class="opt">(optional)</span></label>
         <input type="text" id="f-dates" placeholder="Submit your numbers by Monday 9am" maxlength="120">
 
         <label for="f-form">Your form's link <span class="opt">(optional, adds a button on the board reminding participants where to submit their updates)</span></label>

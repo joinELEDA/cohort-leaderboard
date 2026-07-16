@@ -729,10 +729,10 @@
         if (!config) {
             document.getElementById('main-title').textContent = 'Cohort Leaderboard';
             document.getElementById('subtitle-text').textContent = 'Turn a Google Sheet into a live leaderboard for your program.';
-            showMessage('No leaderboard configured.',
-                'To create one, use the <a href="make.html">leaderboard builder</a>, ' +
-                'or see the <a href="' + DEFAULT_CREDIT_URL + '" target="_blank" rel="noopener">setup guide</a>.<br>' +
-                'Want to see what it looks like? <a href="?demo=1">View the demo</a>.');
+            showMessage('No leaderboard here yet.',
+                'See what one looks like: <a href="?demo=1">view the demo</a>.<br>' +
+                'Ready to make yours? Use the <a href="make.html">leaderboard builder</a> ' +
+                '(free, about 10 minutes), or see the <a href="' + DEFAULT_CREDIT_URL + '" target="_blank" rel="noopener">setup guide</a>.');
             return;
         }
         loadAndRender(config);
