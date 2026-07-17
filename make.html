@@ -34,9 +34,12 @@
         .lede { font-size: 17px; color: var(--color-dark-gray); margin-bottom: 28px; line-height: 1.5; }
         .lede a { color: var(--color-accent); font-weight: 600; }
         .triptych {
+            --tw: min(1080px, calc(100vw - 32px));
+            width: var(--tw);
+            margin-left: calc((100% - var(--tw)) / 2);
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
+            gap: 16px;
             margin-bottom: 28px;
         }
         .triptych figure { margin: 0; }
@@ -45,6 +48,7 @@
             width: 100%;
             border: 2px solid var(--color-light-gray);
             border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
         }
         .triptych figcaption {
             font-size: 13px;
