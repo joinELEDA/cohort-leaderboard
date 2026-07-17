@@ -279,11 +279,17 @@
     //      config.example.js)
     //   2. ?settings=...&data=... query params (hosted mode; Google
     //      Sheets published-CSV URLs only)
-    //   3. ?demo=1 (bundled sample data)
+    //   3. ?demo=1 (bundled settings + the LIVE demo sheet)
     // ============================================================
     const REFRESH_MINUTES = 5;
     const DEFAULT_CREDIT_URL = "make.html";
     const SETUP_GUIDE_URL = "https://github.com/cameronha/cohort-leaderboard";
+    // The demo board reads the real demo form's responses sheet, so
+    // visitor submissions show up on it. A rolling window keeps it
+    // self-cleaning: submitted rows age out, while seed rows (blank
+    // Timestamp cells, edited in the sheet) never expire.
+    const DEMO_DATA_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-RiHyu3TfUu5DSxT91kHK_oErOtLW-JkXpesgKjaPSlKJUX7g8GnXOFfFspeAe79E-h0rZUgxGQYd/pub?gid=1675931515&single=true&output=csv";
+    const DEMO_ROLLING_DAYS = 7;
 
     function escapeHtml(value) {
         return String(value)
@@ -337,7 +343,8 @@
         }
         const params = new URLSearchParams(window.location.search);
         if (params.get('demo')) {
-            return { settings: 'sample-data/settings.csv', data: 'sample-data/leaderboard.csv', source: 'demo' };
+            return { settings: 'sample-data/settings.csv', data: DEMO_DATA_CSV_URL,
+                     rollingSinceDays: DEMO_ROLLING_DAYS, source: 'demo' };
         }
         const s = safeSheetUrl(params.get('settings'));
         const d = safeSheetUrl(params.get('data'));
@@ -750,6 +757,9 @@
             : fetchCsv(config.settings).then(parseSettings);
         Promise.all([settingsPromise, fetchCsv(config.data)])
             .then(([settings, dataRows]) => {
+                if (config.rollingSinceDays) {
+                    settings.sinceDate = new Date(Date.now() - config.rollingSinceDays * 24 * 60 * 60 * 1000);
+                }
                 const leaderboards = buildLeaderboards(dataRows, settings);
                 renderLeaderboard(settings, leaderboards);
             })
